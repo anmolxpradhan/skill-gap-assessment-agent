@@ -13,7 +13,6 @@ from google.genai import types
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from mangum import Mangum
 from pydantic import BaseModel
 
 load_dotenv()
@@ -251,5 +250,4 @@ async def send_message(req: ChatMessage):
     }
 
 
-# Mangum wraps the ASGI app for AWS Lambda / Vercel serverless
-handler = Mangum(app, lifespan="off")
+# Vercel invokes this FastAPI ASGI `app` directly (do not wrap with Mangum).

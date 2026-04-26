@@ -1,7 +1,0 @@
-{
-  "outputDirectory": "skill-gap-agent/frontend/dist",
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/index" },
-    { "source": "/(.*)",       "destination": "/index.html" }
-  ]
-}

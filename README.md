@@ -1,114 +1,114 @@
-# AI-Powered Skill Assessment & Personalised Learning Plan Agent
+# Skill Gap Assessment Agent
 
-A resume tells you what someone *claims* to know — not how well they actually know it.
+An AI-powered technical interviewer that takes a **Job Description** and a **candidate resume**, conducts a live adaptive Q&A assessment, identifies skill gaps, and generates a personalised learning plan with curated resources and time estimates.
 
-This agent takes a **Job Description** and a **candidate's resume**, conversationally assesses real proficiency on each required skill through an adaptive Q&A dialogue, identifies gaps, and generates a **personalised learning plan** focused on adjacent skills the candidate can realistically acquire — with curated free resources and time estimates.
-
----
-
-## Free tier declaration
-
-| Service / Library | Tier used | Limits |
-|---|---|---|
-| **Google Gemini 1.5 Flash** | Free (Google AI Studio) | 15 RPM · 1 500 req/day · 1M tokens/day |
-| **Streamlit** | Open-source (self-hosted) | Unlimited |
-| **PyPDF2** | Open-source | Unlimited |
-| **python-dotenv** | Open-source | Unlimited |
-| **Pydantic** | Open-source | Unlimited |
-
-No credit card required. Everything runs locally.
-
----
-
-## Quickstart
-
-### 1. Clone / download and install dependencies
-```bash
-cd skill-assessment-agent
-python -m venv .venv && source .venv/bin/activate   # optional but recommended
-pip install -r requirements.txt
-```
-
-### 2. Get a free Gemini API key
-Visit **https://aistudio.google.com** → *Get API key* → copy the key.
-
-### 3. Set up the key
-```bash
-cp .env.example .env
-# Edit .env and paste your key, or just enter it in the sidebar at runtime
-```
-
-### 4. Run the app
-```bash
-streamlit run app.py
-```
-
-Open **http://localhost:8501** in your browser.
+Built with **FastAPI** (backend) + **React + Vite** (frontend) + **Google Gemini 2.5 Flash**.
 
 ---
 
 ## How it works
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  1. SETUP                                                    │
-│     Upload resume (PDF/TXT) + paste Job Description         │
-│     ↓                                                        │
-│  2. EXTRACTION  (1 LLM call)                                 │
-│     • Parse required skills + levels from JD                │
-│     • Extract claimed skills from resume                     │
-│     ↓                                                        │
-│  3. ASSESSMENT  (3 LLM calls per skill)                      │
-│     For each required skill:                                 │
-│       Q1 – conceptual understanding                         │
-│       Q2 – practical application                            │
-│       Q3 – edge-case / problem-solving                      │
-│       → Internal rating 1-5 (Novice → Expert)               │
-│     ↓                                                        │
-│  4. REPORT  (1 LLM call)                                     │
-│     • Gap analysis (required vs actual)                     │
-│     • Prioritised learning roadmap                          │
-│     • Adjacent skills the candidate can leverage            │
-│     • Free resources with URLs                              │
-│     • Time estimates (weeks + hours/week)                   │
-└─────────────────────────────────────────────────────────────┘
+Phase 1 — SKILL PROFILING
+  Adaptive Q&A: concept explanations, debugging scenarios, comparisons
+  ↓
+Phase 2 — GAP ANALYSIS
+  Scores each required skill (0–10), verdict: strong / acceptable / gap / critical_gap
+  ↓
+Phase 3 — LEARNING PLAN
+  Prioritised focus areas, real resources (docs, courses, videos), weekly plan + time estimates
 ```
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Backend API | FastAPI + Uvicorn |
+| AI Model | Google Gemini 2.5 Flash |
+| Frontend | React 18 + Vite |
+| Charts | Recharts |
+| File parsing | pdf.js (CDN) + mammoth.js (CDN) |
+| Session storage | Browser localStorage |
+
+---
+
+## Setup
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/anmolxpradhan/skill-gap-assessment-agent.git
+cd skill-gap-assessment-agent/skill-gap-agent
+```
+
+### 2. Gemini API key
+
+A working API key is provided below — copy it into the backend `.env` file:
+
+```
+GEMINI_API_KEY=AIzaSyDTzJXl103cXq8rAH3W30-KvEhjZq5t_s0
+```
+
+```bash
+echo "GEMINI_API_KEY=AIzaSyDTzJXl103cXq8rAH3W30-KvEhjZq5t_s0" > backend/.env
+```
+
+> This key uses the **Google AI Studio free tier** (15 RPM · 1,500 req/day). No credit card required.
+
+### 3. Start the backend
+
+```bash
+cd backend
+python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python -m uvicorn main:app --reload
+```
+
+Backend runs at **http://127.0.0.1:8000**
+
+### 4. Start the frontend
+
+```bash
+cd ../frontend
+npm install
+npm run dev
+```
+
+Frontend runs at **http://localhost:5173**
 
 ---
 
 ## Project structure
 
 ```
-skill-assessment-agent/
-├── app.py                    # Streamlit UI — setup → assessment → report
-├── core/
-│   ├── skill_extractor.py    # LLM-based JD + resume parser
-│   ├── assessor.py           # Adaptive conversational assessment engine
-│   └── plan_generator.py     # Gap analysis + learning plan generator
-├── utils/
-│   └── pdf_parser.py         # PDF / text resume parsing (PyPDF2)
-├── requirements.txt
-├── .env.example
-└── README.md
+skill-gap-agent/
+├── backend/
+│   ├── main.py              # FastAPI app — session management, Gemini integration
+│   ├── requirements.txt
+│   └── .env.example
+└── frontend/
+    ├── src/
+    │   ├── App.jsx           # Root — layout, state, session persistence
+    │   ├── index.css
+    │   └── components/
+    │       ├── InputPanel.jsx      # JD + resume input with drag & drop upload
+    │       ├── ChatInterface.jsx   # Live interview chat (Phase 1 & 2)
+    │       ├── SkillRadar.jsx      # Gap analysis bar chart
+    │       ├── LearningPlan.jsx    # Phase 3 learning plan view
+    │       └── PhaseIndicator.jsx  # Progress indicator
+    ├── index.html
+    ├── package.json
+    └── vite.config.js
 ```
 
 ---
 
-## Assessment scoring rubric
+## Features
 
-| Score | Label | Meaning |
-|---|---|---|
-| 1 | Novice | No real knowledge; only heard of it |
-| 2 | Beginner | Basic awareness; no practical depth |
-| 3 | Intermediate | Solid working knowledge; has used in projects |
-| 4 | Advanced | Deep expertise; handles complex scenarios |
-| 5 | Expert | Mastery; can teach, design systems, handle edge cases |
-
----
-
-## Limitations & known constraints
-
-- **Gemini free tier RPM**: The app adds small delays between calls to avoid hitting the 15 RPM limit. For more than ~8 skills you may occasionally see rate-limit errors; wait a minute and click the answer button again.
-- **PDF parsing quality**: Complex multi-column or image-heavy PDFs may lose formatting. Plain-text paste is always reliable.
-- **Resource URLs**: LLM-generated resource URLs are best-effort. Always verify links before following them.
-- **Language**: English only for optimal quality.
+- Drag & drop resume upload (`.pdf`, `.docx`, `.txt`) with client-side text extraction
+- Persistent session history in the sidebar (localStorage)
+- Live skill radar chart after gap analysis
+- Full-width learning plan view with expandable focus area cards
+- No login required — runs entirely locally

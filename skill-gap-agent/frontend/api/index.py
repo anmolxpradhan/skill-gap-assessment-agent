@@ -25,9 +25,21 @@ _GEMINI_CLIENT: Optional[genai.Client] = None
 def _get_client() -> genai.Client:
     global _GEMINI_CLIENT
     if _GEMINI_CLIENT is None:
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = (
+            os.getenv("GEMINI_API_KEY")
+            or os.getenv("GOOGLE_API_KEY")
+            or os.getenv("GOOGLE_GENERATIVE_AI_API_KEY")
+        )
         if not api_key:
-            raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not configured on the server.")
+            raise HTTPException(
+                status_code=500,
+                detail=(
+                    "No Gemini API key in server env. In Vercel: open your project → "
+                    "Settings → Environment Variables → add GEMINI_API_KEY for "
+                    "Production (and Preview if you use preview URLs) → save → "
+                    "Deployments → Redeploy. Keys must not be committed to Git."
+                ),
+            )
         _GEMINI_CLIENT = genai.Client(
             api_key=api_key,
             http_options=types.HttpOptions(api_version="v1alpha"),

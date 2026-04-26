@@ -4,6 +4,12 @@ An AI-powered technical interviewer that takes a **Job Description** and a **can
 
 Built with **FastAPI** (backend) + **React + Vite** (frontend) + **Google Gemini 2.5 Flash**.
 
+### Live app (Vercel)
+
+**Deployed demo:** [https://skill-gap-assessment-agent-iw8wl8kkw-anmolxpradhans-projects.vercel.app/](https://skill-gap-assessment-agent-iw8wl8kkw-anmolxpradhans-projects.vercel.app/)
+
+Ensure **`GEMINI_API_KEY`** is set in that Vercel project’s **Settings → Environment Variables**, then redeploy, or API calls will fail.
+
 ---
 
 ## How it works

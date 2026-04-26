@@ -45,17 +45,15 @@ cd skill-gap-assessment-agent/skill-gap-agent
 
 ### 2. Gemini API key
 
-A working API key is provided below — copy it into the backend `.env` file:
-
-```
-GEMINI_API_KEY=AIzaSyDTzJXl103cXq8rAH3W30-KvEhjZq5t_s0
-```
+1. Open [Google AI Studio](https://aistudio.google.com) → **Get API key** → create a key.
+2. Put it only in local env files — **never commit keys** or paste them into public READMEs (Google may disable leaked keys).
 
 ```bash
-echo "GEMINI_API_KEY=AIzaSyDTzJXl103cXq8rAH3W30-KvEhjZq5t_s0" > backend/.env
+cp backend/.env.example backend/.env
+# Edit backend/.env and set GEMINI_API_KEY=your_key_here
 ```
 
-> This key uses the **Google AI Studio free tier** (15 RPM · 1,500 req/day). No credit card required.
+> Free tier limits apply (see Google’s current quotas in AI Studio).
 
 ### 3. Start the backend
 
@@ -105,35 +103,29 @@ skill-gap-agent/
 
 ---
 
-## Deployment (Vercel — full-stack, one platform)
-
-Both frontend and backend deploy together on Vercel in a single step.
+## Deployment (Vercel — full-stack)
 
 ### Step 1 — Import the repo
 
-1. Go to [vercel.com](https://vercel.com) → **Add New Project**
-2. Import `skill-gap-assessment-agent` from GitHub
-3. Leave **Root Directory** as `/` (repo root) — `vercel.json` handles everything
-4. Framework preset will show "Other" — that's correct, leave it
+1. Go to [vercel.com](https://vercel.com) → **Add New Project** → import this repo.
+2. Set **Root Directory** to: `skill-gap-agent/frontend`
+3. Framework should detect as **Vite** (or set **Framework Preset** to **Vite** in project settings if needed).
 
-### Step 2 — Add the environment variable
+### Step 2 — Environment variable
 
-Under **Environment Variables** before deploying, add:
+Under **Settings → Environment Variables**, add:
 
 | Name | Value |
 |---|---|
-| `GEMINI_API_KEY` | `AIzaSyDTzJXl103cXq8rAH3W30-KvEhjZq5t_s0` |
+| `GEMINI_API_KEY` | *(paste a fresh key from [AI Studio](https://aistudio.google.com) — do not reuse a key that was ever committed or shared publicly)* |
+
+Redeploy after adding or changing the key.
 
 ### Step 3 — Deploy
 
-Click **Deploy**. Vercel will:
-- Build the React frontend (`npm run build`)
-- Deploy the FastAPI backend as a Python serverless function at `/api/*`
-- Route all other traffic to the React SPA
+Push to `main` or trigger **Redeploy** from the Deployments tab. The Vite app is served from `dist/`; API routes live under `/api/*` (`api/index.py`).
 
-Your live URL will be something like `https://skill-gap-assessment-agent.vercel.app`
-
-> **How it works:** The backend is stateless — conversation history is stored in the browser and sent with each request, so it works perfectly with Vercel's serverless functions.
+> **Stateless API:** Chat history is kept in the browser and sent with each request so it works on Vercel serverless.
 
 ---
 

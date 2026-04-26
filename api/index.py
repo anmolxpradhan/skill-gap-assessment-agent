@@ -13,20 +13,27 @@ from google.genai import types
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum
 from pydantic import BaseModel
 
 load_dotenv()
 
-# ── Gemini client — one instance, reused across invocations ───────────────────
+# ── Gemini client — lazily initialised on first use ───────────────────────────
 
-_GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if not _GEMINI_API_KEY:
-    raise RuntimeError("GEMINI_API_KEY environment variable is not set.")
+_GEMINI_CLIENT: Optional[genai.Client] = None
 
-_GEMINI_CLIENT = genai.Client(
-    api_key=_GEMINI_API_KEY,
-    http_options=types.HttpOptions(api_version="v1alpha"),
-)
+
+def _get_client() -> genai.Client:
+    global _GEMINI_CLIENT
+    if _GEMINI_CLIENT is None:
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not configured on the server.")
+        _GEMINI_CLIENT = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(api_version="v1alpha"),
+        )
+    return _GEMINI_CLIENT
 
 # ── App ───────────────────────────────────────────────────────────────────────
 
@@ -119,7 +126,7 @@ def _build_chat(history: Optional[list[HistoryEntry]] = None):
             gemini_history.append(
                 types.Content(role=entry.role, parts=[types.Part(text=entry.text)])
             )
-    return _GEMINI_CLIENT.chats.create(
+    return _get_client().chats.create(
         model="gemini-2.5-flash",
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT,
@@ -242,3 +249,7 @@ async def send_message(req: ChatMessage):
         "learning_plan": learning_plan,
         "history": new_history,
     }
+
+
+# Mangum wraps the ASGI app for AWS Lambda / Vercel serverless
+handler = Mangum(app, lifespan="off")

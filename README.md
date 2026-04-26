@@ -105,36 +105,35 @@ skill-gap-agent/
 
 ---
 
-## Deployment (Render + Vercel)
+## Deployment (Vercel — full-stack, one platform)
 
-### Step 1 — Deploy the backend on Render
+Both frontend and backend deploy together on Vercel in a single step.
 
-1. Go to [render.com](https://render.com) → **New** → **Web Service**
-2. Connect your GitHub repo (`skill-gap-assessment-agent`)
-3. Render will auto-detect `render.yaml` — just confirm the settings
-4. Under **Environment Variables**, add:
-   ```
-   GEMINI_API_KEY = AIzaSyDTzJXl103cXq8rAH3W30-KvEhjZq5t_s0
-   ```
-5. Click **Deploy** — wait for it to go live
-6. Copy the URL Render gives you (e.g. `https://skill-gap-backend.onrender.com`)
+### Step 1 — Import the repo
 
-### Step 2 — Deploy the frontend on Vercel
+1. Go to [vercel.com](https://vercel.com) → **Add New Project**
+2. Import `skill-gap-assessment-agent` from GitHub
+3. Leave **Root Directory** as `/` (repo root) — `vercel.json` handles everything
+4. Framework preset will show "Other" — that's correct, leave it
 
-1. Go to [vercel.com](https://vercel.com) → **New Project** → import the same GitHub repo
-2. In **Configure Project**, set:
-   - **Root Directory** → `skill-gap-agent/frontend`
-   - **Framework Preset** → Vite (auto-detected)
-3. Under **Environment Variables**, add:
-   ```
-   VITE_API_URL = https://skill-gap-backend.onrender.com
-   ```
-   *(paste the Render URL from Step 1)*
-4. Click **Deploy**
+### Step 2 — Add the environment variable
 
-That's it — the frontend on Vercel talks to the backend on Render.
+Under **Environment Variables** before deploying, add:
 
-> **Note:** Render's free tier spins down after 15 minutes of inactivity. The first request after sleep takes ~30 seconds to wake up. Subsequent requests are instant.
+| Name | Value |
+|---|---|
+| `GEMINI_API_KEY` | `AIzaSyDTzJXl103cXq8rAH3W30-KvEhjZq5t_s0` |
+
+### Step 3 — Deploy
+
+Click **Deploy**. Vercel will:
+- Build the React frontend (`npm run build`)
+- Deploy the FastAPI backend as a Python serverless function at `/api/*`
+- Route all other traffic to the React SPA
+
+Your live URL will be something like `https://skill-gap-assessment-agent.vercel.app`
+
+> **How it works:** The backend is stateless — conversation history is stored in the browser and sent with each request, so it works perfectly with Vercel's serverless functions.
 
 ---
 

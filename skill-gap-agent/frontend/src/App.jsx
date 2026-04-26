@@ -87,9 +87,9 @@ function ResultsPanel({ gapAnalysis, learningPlan, resultsTab, onTabChange }) {
 
 export default function App() {
   const [view, setView] = useState('input')         // 'input' | 'chat' | 'saved'
-  const [sessionId, setSessionId] = useState(null)
   const [activeSessionId, setActiveSessionId] = useState(null)
   const [messages, setMessages] = useState([])
+  const [history, setHistory] = useState([])         // Gemini chat history sent with every request
   const [phase, setPhase] = useState(1)
   const [gapAnalysis, setGapAnalysis] = useState(null)
   const [learningPlan, setLearningPlan] = useState(null)
@@ -103,22 +103,17 @@ export default function App() {
   })
 
   // Save a completed session and switch to the full-width plan view
-  const saveAndShowPlan = (sid, plan, gap, jd) => {
+  const saveAndShowPlan = (plan, gap, jd) => {
+    const id = crypto.randomUUID()
     const raw = jd.trim()
     const title = (raw.slice(0, 42) + (raw.length > 42 ? '…' : '')) || 'Assessment'
-    const session = {
-      id: sid,
-      title,
-      date: new Date().toISOString(),
-      learningPlan: plan,
-      gapAnalysis: gap,
-    }
+    const session = { id, title, date: new Date().toISOString(), learningPlan: plan, gapAnalysis: gap }
     setSessions(prev => {
-      const updated = [session, ...prev.filter(s => s.id !== sid)]
+      const updated = [session, ...prev]
       localStorage.setItem(SESSIONS_KEY, JSON.stringify(updated))
       return updated
     })
-    setActiveSessionId(sid)
+    setActiveSessionId(id)
     setView('saved')
   }
 
@@ -137,13 +132,13 @@ export default function App() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Failed to start session')
 
-      setSessionId(data.session_id)
+      setHistory(data.history || [])
       setMessages([{ role: 'assistant', content: data.message }])
       setPhase(data.phase)
       if (data.gap_analysis) { setGapAnalysis(data.gap_analysis); setResultsTab('radar') }
       if (data.learning_plan) {
         setLearningPlan(data.learning_plan)
-        saveAndShowPlan(data.session_id, data.learning_plan, data.gap_analysis, jd)
+        saveAndShowPlan(data.learning_plan, data.gap_analysis, jd)
       } else {
         setView('chat')
       }
@@ -161,21 +156,22 @@ export default function App() {
       const res = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: sessionId, message: text }),
+        body: JSON.stringify({ message: text, history }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Error')
 
+      setHistory(data.history || [])
       setMessages(prev => [...prev, { role: 'assistant', content: data.message }])
-      setPhase(data.phase)
+      // Phase only moves forward, never backward
+      setPhase(prev => Math.max(prev, data.phase))
 
       const latestGap = data.gap_analysis || gapAnalysis
       if (data.gap_analysis) { setGapAnalysis(data.gap_analysis); setResultsTab('radar') }
 
       if (data.learning_plan) {
         setLearningPlan(data.learning_plan)
-        // Switch to full-width plan view — identical to loading from history
-        saveAndShowPlan(sessionId, data.learning_plan, latestGap, jdText)
+        saveAndShowPlan(data.learning_plan, latestGap, jdText)
       }
     } catch (err) {
       setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${err.message}` }])
@@ -188,9 +184,9 @@ export default function App() {
 
   const handleNew = () => {
     setView('input')
-    setSessionId(null)
     setActiveSessionId(null)
     setMessages([])
+    setHistory([])
     setPhase(1)
     setGapAnalysis(null)
     setLearningPlan(null)

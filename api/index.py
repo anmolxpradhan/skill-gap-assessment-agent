@@ -111,7 +111,7 @@ class ChatMessage(BaseModel):
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _build_chat(history: list[HistoryEntry] | None = None):
+def _build_chat(history: Optional[list[HistoryEntry]] = None):
     """Create a Gemini chat, seeded with prior history if provided."""
     gemini_history = []
     if history:

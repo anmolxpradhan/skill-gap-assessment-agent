@@ -1,0 +1,8 @@
+{
+  "name": "skill-gap-agent",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd skill-gap-agent/frontend && npm install && npm run build"
+  }
+}

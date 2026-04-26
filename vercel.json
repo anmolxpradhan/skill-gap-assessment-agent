@@ -1,9 +1,7 @@
 {
-  "buildCommand": "cd skill-gap-agent/frontend && npm install && npm run build",
   "outputDirectory": "skill-gap-agent/frontend/dist",
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/index" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/index" },
+    { "source": "/(.*)",       "destination": "/index.html" }
   ]
 }
